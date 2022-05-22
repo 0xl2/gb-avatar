@@ -6,15 +6,24 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./AvatarAccessory.sol";
 
 contract Avatar is ERC721, Ownable {
+    uint public NFTCnt;
+    uint public MintPrice;
     mapping(uint => uint) TokenMeta;
 
     AvatarAccessory public Accessory;
+
+    event SetMintPrice(uint oldPrice, uint newPrice);
 
     constructor() 
     ERC721("Avatar", "AVATAR") {}
 
     function setAddress(address _accessory) external onlyOwner {
         Accessory = AvatarAccessory(payable(_accessory));
+    }
+
+    function setMintPrice(uint _price) external onlyOwner {
+        emit SetMintPrice(MintPrice, _price);
+        MintPrice = _price;
     }
 
     function transferFrom(
@@ -26,4 +35,14 @@ contract Avatar is ERC721, Ownable {
 
         Accessory.transferAccessory(from, to, tokenId);
     }
+
+    function mintNFT() external payable {
+        require(msg.value >= MintPrice, "Insufficient balance");
+
+        NFTCnt++;
+
+        _mint(msg.sender, NFTCnt);
+    }
+
+    receive() external payable {}
 }

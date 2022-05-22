@@ -34,7 +34,7 @@ contract AvatarAccessory is ERC1155, Ownable {
     }
 
     function setAddress(address _avatar) external onlyOwner {
-        avatarContract = Avatar(_avatar);
+        avatarContract = Avatar(payable(_avatar));
     }
 
     function setPrice(uint accessoryId, uint price) external validAccessory(accessoryId) onlyOwner {
@@ -111,12 +111,15 @@ contract AvatarAccessory is ERC1155, Ownable {
     }
 
     function buyAccessory(
-        uint accessoryId
+        uint accessoryId,
+        uint amount
     ) external payable validAccessory(accessoryId) {
-        require(AccessoryPrice[accessoryId] > 0, "Price not set");
-        require(msg.value >= AccessoryPrice[accessoryId], "Insufficient balance");
+        require(amount > 0, "Invalid amount");
+        uint mintPrice = AccessoryPrice[accessoryId];
+        require(mintPrice > 0, "Price not set");
+        require(msg.value >= mintPrice * amount, "Insufficient balance");
 
-        _mint(msg.sender, accessoryId, 1, "");
+        _mint(msg.sender, accessoryId, amount, "");
 
         emit BuyAccessory(msg.sender, accessoryId);
     }
